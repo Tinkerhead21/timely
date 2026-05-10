@@ -11,8 +11,8 @@ interface IsubTask {
 
 interface ITask {
     name: string
-    priority: Priority
     status: string
+    priority: Priority
     category: string
     subtasks: IsubTask[]
     notes: string
@@ -42,7 +42,7 @@ interface IStatusDefinition {
     status: Status
 }
 
-interface IDayTasks {
+interface IDay {
     date: string
     projects: IProject[]
 }
