@@ -4,7 +4,7 @@ type Status = "todo" | "in-progress" | "done" | "blocked"
 
 type SubStatus = boolean
 
-interface IsubTask {
+interface ISubTask {
     name: string
     subStatus: SubStatus
 }
@@ -14,7 +14,7 @@ interface ITask {
     status: string
     priority: Priority
     category: string
-    subtasks: IsubTask[]
+    subtasks: ISubTask[]
     notes: string
 }
 

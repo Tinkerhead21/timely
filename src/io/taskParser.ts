@@ -1,13 +1,14 @@
-import "@/model/types"
+import "../ui/types"
+import * as fs from 'fs';
 
-const fileContent = "## project1\n task1\n | task2 |\n - [ ] subtask1\n - [x] subtask1\n | task2"
-var lineParts: string[] = []
+const fileContent = fs.readFileSync('src/io/testCases/test1.md', 'utf-8')
+
 const lines: string[] = fileContent.split('\n');
 var i: number = 0
 
 function parseDay(): IDay {
     var day: IDay = {
-        date: "", // file name 
+        date: "", // file name
         projects: [] as IProject[]
     }
 
@@ -20,6 +21,8 @@ function parseDay(): IDay {
             return null
         }
     }
+
+    console.log("day:" + day)
     return day
 }
 
@@ -39,28 +42,40 @@ function parseProject(): IProject {
         i++
     }
 
+    console.log("project:" + project)
     return project
 }
 
-function parseTask(i: number): ITask {
-    if (lines[i].match(/^\|\S\|/)) {
-        lineParts = lines[i].split('|')
-    }
-    else if (lines[i].match(/^\s-[\S]/)) {
-        subTasks.push(lines[i])
-    }
-    else {
-        return null
-    }
+// 
 
-    var subTasks: string[] = []
+function parseTask(i: number): ITask {
+    var subTasks: ISubTask[] = []
+    var lineParts: string[] = []
     const task: ITask = {
         name: lineParts[1],
         status: lineParts[2],
         priority: lineParts[3] as Priority,
         category: lineParts[4],
-        subtasks: [],
+        subtasks: subTasks[] as IsubTask,
         notes: ""
     }
+
+    if (lines[i].match(/^\|\S\|/)) {
+        lineParts = lines[i].split('|')
+    }
+    else if (lines[i].match(/^\s-[\s]/)) {
+        // 1. boolean as no. 2. split after ] and push to subtask.name
+        subTasks[].push(lines[i].split('|'))
+    }
+    else if (lines[i].match(/^\s-[x]/)) {
+        // 1. boolean as no. 2. split after ] and push to subtask.name
+        subTasks.push(lines[i])
+    }
+    else {
+        console.log("task: no match")
+        return null
+    }
+    console.log("task:" + task)
     return task
 }
+parseDay()
