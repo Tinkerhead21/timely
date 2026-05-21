@@ -1,48 +1,48 @@
-type Priority = "low" | "high" | "urgent"
+type Priority = 3 | 2 | 1;
 
-type Status = "todo" | "in-progress" | "done" | "blocked"
+type Status = "todo" | "in-progress" | "done" | "blocked";
 
-type SubStatus = boolean
+type SubStatus = boolean;
 
 interface ISubTask {
-    name: string
-    subStatus: SubStatus
+  name: string;
+  subStatus: SubStatus;
 }
 
 interface ITask {
-    name: string
-    status: string
-    priority: Priority
-    category: string
-    subtasks: ISubTask[]
-    notes: string
+  name: string;
+  status: string;
+  priority: Priority;
+  category: string;
+  subtasks: ISubTask[];
+  notes: string;
 }
 
 interface IProject {
-    name: string
-    tasks: ITask[]
+  name: string;
+  tasks: ITask[];
 }
 
 interface ITaskSettings {
-    taskDirectory: string
-    carryOverTasks: boolean
-    autoCreateFile: boolean
-    deleteOldDays: boolean
-    maxDays: number
-    showStatus: boolean
-    showCategory: boolean
-    showPriority: boolean
-    statusList: IStatusDefinition[]
-    categories: string[]
+  taskDirectory: string;
+  carryOverTasks: boolean;
+  autoCreateFile: boolean;
+  deleteOldDays: boolean;
+  maxDays: number;
+  showStatus: boolean;
+  showCategory: boolean;
+  showPriority: boolean;
+  statusList: IStatusDefinition[];
+  categories: string[];
 }
 
 interface IStatusDefinition {
-    id: number
-    name: string
-    status: Status
+  id: number;
+  name: string;
+  status: Status;
 }
 
 interface IDay {
-    date: string
-    projects: IProject[]
+  date: string;
+  projects: IProject[];
 }
