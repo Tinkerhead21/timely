@@ -43,6 +43,8 @@ interface IStatusDefinition {
 }
 
 interface IDay {
-  date: string;
+  dd: string;
+  mm: string;
+  yy: string;
   projects: IProject[];
 }

@@ -5,7 +5,7 @@ module.exports = {
   extends: ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
   rules: {
     "@typescript-eslint/no-unused-vars": [
-      2,
+      0,
       { args: "all", argsIgnorePattern: "^_" },
     ],
   },

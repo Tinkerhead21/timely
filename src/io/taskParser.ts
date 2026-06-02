@@ -1,106 +1,101 @@
 import "../ui/types";
-import * as fs from "fs";
 
-const fileContent = fs.readFileSync("src/io/testCases/test1.md", "utf-8");
+export let lines: string[] = [];
+export let i = 0;
 
-const lines: string[] = fileContent.split("\n");
-var i: number = 0;
+const projects: IProject[] = [];
+const day: IDay = {
+  dd: "day",
+  mm: "month",
+  yy: "year",
+  projects: projects,
+};
 
-// function parseDay(): IDay {
-//     var day: IDay = {
-//         date: "", // file name
-//         projects: [] as IProject[]
-//     }
+export function parseDay(
+  fileContent: string,
+  dd: string,
+  mm: string,
+  yy: string,
+): IDay {
+  lines = fileContent.split(/\r?\n/);
+  i = 0;
+  day.dd = dd;
+  day.mm = mm;
+  day.yy = yy;
+  day.projects = [];
+  for (; i < lines.length; i++) {
+    if (lines[i].match(/^##\s/)) {
+      day.projects.push(parseProject());
+    }
+  }
+  return day;
+}
 
-//     while (i < lines.length) {
-//         if (lines[i].match(/^##\s\S/)) {
-//             day.projects.push(parseProject())
-//         }
-//         else {
-//             i++
-//             return null
-//         }
-//     }
+function parseProject(): IProject {
+  const tasks: ITask[] = [];
+  const project: IProject = {
+    name: "",
+    tasks: tasks,
+  };
+  const projectMatch = lines[i].match(/^##\s(.*)/);
+  project.name = projectMatch ? projectMatch[1] : "Untitled Project";
+  i++;
+  for (; i < lines.length; i++) {
+    if (lines[i].match(/^-\s/)) {
+      project.tasks.push(parseTask());
+    } else {
+      break;
+    }
+  }
+  return project;
+}
 
-//     console.log("day:" + day)
-//     return day
-// }
-
-// function parseProject(): IProject {
-//     var project: IProject = {
-//         name: "",
-//         tasks: []
-//     }
-//     project.name = lines[i].trim()
-//     i++
-
-//     while (i < lines.length) {
-//         if (lines[i].match(/^##\s\S/)) {
-//             break;
-//         }
-//         else {
-//             project.tasks.push(parseTask(i))
-//         }
-//     }
-
-//     console.log("project:" + project)
-//     return project
-// }
-lines[1] = `| Write docs | in-progress | low | docs |
-- Fix bug 123
-- [ ] Check console logs
-- [x] Identify root cause`;
-
-function parseTask(i: number): ITask {
-  var subTasks: ISubTask[] = [];
-  var lineParts: string[] = [];
+function parseTask(): ITask {
+  const subTasks: ISubTask[] = [];
   const task: ITask = {
-    name: lineParts[1],
-    status: lineParts[2],
-    priority: lineParts[3] as Priority,
-    category: lineParts[4],
+    name: "",
+    status: "",
+    priority: 3 as Priority,
+    category: "",
     subtasks: subTasks,
     notes: "",
   };
-  if (lines[i].match(/^\|.*?\|/)) {
-    lineParts = lines[i].split("|");
-    i++;
-  } else {
-    i++;
-    return null;
-  }
-  while (i < lines.length) {
-    if (lines[i].match(/^-\s[.]/)) {
-      subTasks.push(parseSubTask(i));
-      i++;
+
+  task.name = lines[i].match(/^-\s(.*)/)[1];
+  i++;
+
+  for (; i < lines.length; i++) {
+    if (lines[i].trimStart().match(/^>/)) {
+      const statusMatch = lines[i].trimStart().match(/^>([^\s]*)/);
+      const priorityMatch = lines[i].match(/\s!(\d)/);
+      const categoryMatch = lines[i].match(/\s#([^\s]*)/);
+
+      task.status = statusMatch ? statusMatch[1] : "todo";
+      task.priority = priorityMatch
+        ? (parseInt(priorityMatch[1]) as Priority)
+        : (3 as Priority);
+      task.category = categoryMatch ? categoryMatch[1] : "";
+    } else if (lines[i].trimStart().match(/^-\s\[.\]\s./)) {
+      subTasks.push(parseSubTask());
+    } else if (lines[i].trimStart().match(/^-\s./)) {
+      task.notes = lines[i].trimStart().match(/^-\s(.*)/)[1];
     } else {
-      console.log("subtask: no match");
-      i++;
-      return null;
+      break;
     }
   }
   return task;
 }
 
-function parseSubTask(i: number): ISubTask {
-  var subTask: ISubTask = {
+function parseSubTask(): ISubTask {
+  const subTask: ISubTask = {
     name: "",
     subStatus: false,
   };
-  if (lines[i].match(/^\-\s\[\s\]/)) {
-    // 1. boolean as no. 2. split after ] and push to subtask.name
-    subTask.name = lines[i].split("]")[1];
+  subTask.name = lines[i].match(/^-\s\[.\]\s(.*)/)[1];
+  if (lines[i].trimStart().match(/^-\s\[\s\]/)) {
     subTask.subStatus = false;
-  } else if (lines[i].match(/^\-\s\[x\]/)) {
-    // 1. boolean as no. 2. split after ] and push to subtask.name
-    subTask.name = lines[i].split("]")[1];
+  } else if (lines[i].trimStart().match(/^-\s\[\S\]/)) {
     subTask.subStatus = true;
-  } else {
-    console.log("subtask: no match");
-    return null;
   }
-
   return subTask;
 }
-console.log(parseTask(1));
-// parseDay()
