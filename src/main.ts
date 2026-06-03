@@ -2,7 +2,7 @@ import { Plugin, WorkspaceLeaf, ItemView } from "obsidian";
 import { loadFromFileContent, renderDayToUI } from "./io/dayStore";
 
 // 🖼️ 1. THE VIEW CLASS (Manages the Sidebar UI)
-export class DayTestView extends ItemView {
+class DayTestView extends ItemView {
   static readonly VIEW_TYPE = "day-test-view";
 
   getViewType() {

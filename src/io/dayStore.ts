@@ -1,4 +1,4 @@
-import moment from "obsidian";
+import { moment } from "obsidian";
 import { parseDay, lines, i } from "./taskParser";
 
 export async function loadFromFileContent(app, file) {
