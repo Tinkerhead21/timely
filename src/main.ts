@@ -1,113 +1,88 @@
-import type { Moment, WeekSpec } from "moment";
-import { App, Plugin, WorkspaceLeaf } from "obsidian";
+import { Plugin, WorkspaceLeaf, ItemView } from "obsidian";
+import { loadFromFileContent, renderDayToUI } from "./io/dayStore";
 
-import { VIEW_TYPE_CALENDAR } from "./constants";
-import { settings } from "./ui/stores";
-import {
-  appHasPeriodicNotesPluginLoaded,
-  CalendarSettingsTab,
-  ISettings,
-} from "./settings";
-import CalendarView from "./view";
+// 🖼️ 1. THE VIEW CLASS (Manages the Sidebar UI)
+export class DayTestView extends ItemView {
+  static readonly VIEW_TYPE = "day-test-view";
 
-declare global {
-  interface Window {
-    app: App;
-    moment: () => Moment;
-    _bundledLocaleWeekSpec: WeekSpec;
+  getViewType() {
+    return DayTestView.VIEW_TYPE;
+  }
+  getDisplayText() {
+    return "Day Parser Test";
+  }
+  getIcon() {
+    return "dice";
+  }
+
+  async updateView() {
+    const activeFile = this.app.workspace.getActiveFile();
+    const container = this.containerEl.children[1] as HTMLElement;
+
+    if (activeFile) {
+      // Load the data from the active file
+      const dayData = await loadFromFileContent(activeFile, this.app);
+      // Paint it to the screen container
+      renderDayToUI(container, dayData);
+    } else {
+      container.empty();
+      container.createEl("p", { text: "No active file open." });
+    }
+  }
+
+  async onOpen() {
+    await this.updateView();
   }
 }
 
-export default class CalendarPlugin extends Plugin {
-  public options: ISettings;
-  private view: CalendarView;
-
-  onunload(): void {
-    this.app.workspace
-      .getLeavesOfType(VIEW_TYPE_CALENDAR)
-      .forEach((leaf) => leaf.detach());
-  }
-
-  async onload(): Promise<void> {
-    this.register(
-      settings.subscribe((value) => {
-        this.options = value;
-      })
-    );
-
+// 🔌 2. THE PLUGIN CLASS (The Main Bridge Engine)
+export default class DayTestPlugin extends Plugin {
+  async onload() {
+    // Register our custom view layout blueprint with Obsidian
     this.registerView(
-      VIEW_TYPE_CALENDAR,
-      (leaf: WorkspaceLeaf) => (this.view = new CalendarView(leaf))
+      DayTestView.VIEW_TYPE,
+      (leaf: WorkspaceLeaf) => new DayTestView(leaf),
     );
 
-    this.addCommand({
-      id: "show-calendar-view",
-      name: "Open view",
-      checkCallback: (checking: boolean) => {
-        if (checking) {
-          return (
-            this.app.workspace.getLeavesOfType(VIEW_TYPE_CALENDAR).length === 0
-          );
+    // Add a clickable button (ribbon icon) on the left sidebar to open the widget
+    this.addRibbonIcon("dice", "Open Day Parser Test", () => {
+      this.activateView();
+    });
+
+    // 🔄 Listen for when the user clicks or switches to a different file
+    this.registerEvent(
+      this.app.workspace.on("active-leaf-change", async () => {
+        const leaves = this.app.workspace.getLeavesOfType(
+          DayTestView.VIEW_TYPE,
+        );
+        if (leaves.length > 0) {
+          const view = leaves[0].view as DayTestView;
+          await view.updateView();
         }
-        this.initLeaf();
-      },
-    });
+      }),
+    );
+  }
 
-    this.addCommand({
-      id: "open-weekly-note",
-      name: "Open Weekly Note",
-      checkCallback: (checking) => {
-        if (checking) {
-          return !appHasPeriodicNotesPluginLoaded();
-        }
-        this.view.openOrCreateWeeklyNote(window.moment(), false);
-      },
-    });
+  // Helper action to handle spawning the view inside the right sidebar
+  async activateView() {
+    const { workspace } = this.app;
 
-    this.addCommand({
-      id: "reveal-active-note",
-      name: "Reveal active note",
-      callback: () => this.view.revealActiveNote(),
-    });
+    let leaf = workspace.getLeavesOfType(DayTestView.VIEW_TYPE)[0];
 
-    await this.loadOptions();
-
-    this.addSettingTab(new CalendarSettingsTab(this.app, this));
-
-    if (this.app.workspace.layoutReady) {
-      this.initLeaf();
-    } else {
-      this.registerEvent(
-        this.app.workspace.on("layout-ready", this.initLeaf.bind(this))
-      );
+    if (!leaf) {
+      // If the widget isn't open yet, create it in the right sidebar pane
+      const rightLeaf = workspace.getRightLeaf(false);
+      if (rightLeaf) {
+        await rightLeaf.setViewState({
+          type: DayTestView.VIEW_TYPE,
+          active: true,
+        });
+        leaf = rightLeaf;
+      }
     }
-  }
 
-  initLeaf(): void {
-    if (this.app.workspace.getLeavesOfType(VIEW_TYPE_CALENDAR).length) {
-      return;
+    if (leaf) {
+      workspace.revealLeaf(leaf);
     }
-    this.app.workspace.getRightLeaf(false).setViewState({
-      type: VIEW_TYPE_CALENDAR,
-    });
-  }
-
-  async loadOptions(): Promise<void> {
-    const options = await this.loadData();
-    settings.update((old) => {
-      return {
-        ...old,
-        ...(options || {}),
-      };
-    });
-
-    await this.saveData(this.options);
-  }
-
-  async writeOptions(
-    changeOpts: (settings: ISettings) => Partial<ISettings>
-  ): Promise<void> {
-    settings.update((old) => ({ ...old, ...changeOpts(old) }));
-    await this.saveData(this.options);
   }
 }
