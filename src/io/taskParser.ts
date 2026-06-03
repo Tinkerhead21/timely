@@ -17,6 +17,7 @@ export function parseDay(
   mm: string,
   yy: string,
 ): IDay {
+  console.log(`parseDay began at ${i}`);
   lines = fileContent.split(/\r?\n/);
   i = 0;
   day.dd = dd;
@@ -25,9 +26,11 @@ export function parseDay(
   day.projects = [];
   for (; i < lines.length; i++) {
     if (lines[i].match(/^##\s/)) {
+      console.log(`Project header match at ${i}`);
       day.projects.push(parseProject());
     }
   }
+  console.log(`Day Parsed:`, day);
   return day;
 }
 
@@ -42,6 +45,7 @@ function parseProject(): IProject {
   i++;
   for (; i < lines.length; i++) {
     if (lines[i].match(/^-\s/)) {
+      console.log(`Task line match at ${i}`);
       project.tasks.push(parseTask());
     } else {
       break;
@@ -66,6 +70,7 @@ function parseTask(): ITask {
 
   for (; i < lines.length; i++) {
     if (lines[i].trimStart().match(/^>/)) {
+      console.log(`Parsing Task Details at ${i}`);
       const statusMatch = lines[i].trimStart().match(/^>([^\s]*)/);
       const priorityMatch = lines[i].match(/\s!(\d)/);
       const categoryMatch = lines[i].match(/\s#([^\s]*)/);
@@ -76,8 +81,10 @@ function parseTask(): ITask {
         : (3 as Priority);
       task.category = categoryMatch ? categoryMatch[1] : "";
     } else if (lines[i].trimStart().match(/^-\s\[.\]\s./)) {
+      console.log(`SubTask match at ${i}`);
       subTasks.push(parseSubTask());
     } else if (lines[i].trimStart().match(/^-\s./)) {
+      console.log(`Task Notes match at ${i}`);
       task.notes = lines[i].trimStart().match(/^-\s(.*)/)[1];
     } else {
       break;
@@ -91,10 +98,12 @@ function parseSubTask(): ISubTask {
     name: "",
     subStatus: false,
   };
-  subTask.name = lines[i].match(/^-\s\[.\]\s(.*)/)[1];
+  subTask.name = lines[i].trimStart().match(/^-\s\[.\]\s(.*)/)[1];
   if (lines[i].trimStart().match(/^-\s\[\s\]/)) {
+    console.log(`Unchecked SubTask match at ${i}`);
     subTask.subStatus = false;
   } else if (lines[i].trimStart().match(/^-\s\[\S\]/)) {
+    console.log(`Checked SubTask match at ${i}`);
     subTask.subStatus = true;
   }
   return subTask;

@@ -1,8 +1,9 @@
 import { moment } from "obsidian";
 import { parseDay, lines, i } from "./taskParser";
 
-export async function loadFromFileContent(app, file) {
+export async function loadFromFileContent(file, app) {
   const fileContent = await app.vault.read(file);
+  console.log("File Content", fileContent);
   const coreFormat =
     app.internalPlugins.plugins["daily-notes"]?.instance?.options?.format;
   const periodicFormat =

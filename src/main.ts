@@ -16,20 +16,36 @@ class DayTestView extends ItemView {
   }
 
   async updateView() {
+    console.log("🔄 updateView() triggered!"); // Log 1
+
     const activeFile = this.app.workspace.getActiveFile();
     const container = this.containerEl.children[1] as HTMLElement;
 
+    console.log(
+      "📂 Active File identified:",
+      activeFile ? activeFile.path : "None",
+    ); // Log 2
+
     if (activeFile) {
-      // Load the data from the active file
-      const dayData = await loadFromFileContent(activeFile, this.app);
-      // Paint it to the screen container
-      renderDayToUI(container, dayData);
+      try {
+        console.log("⚙️ Attempting to parse file contents..."); // Log 3
+        const dayData = await loadFromFileContent(activeFile, this.app);
+
+        console.log("📦 Parsed Day Data payload:", dayData); // Log 4
+
+        renderDayToUI(container, dayData);
+        console.log("🎨 renderDayToUI execution complete!"); // Log 5
+      } catch (parseError) {
+        console.error(
+          "❌ Error caught during parsing/rendering cycle:",
+          parseError,
+        );
+      }
     } else {
       container.empty();
       container.createEl("p", { text: "No active file open." });
     }
   }
-
   async onOpen() {
     await this.updateView();
   }
